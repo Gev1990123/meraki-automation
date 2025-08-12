@@ -32,3 +32,20 @@ def is_vlan_present(dashboard, networkId, vlan_name):
             return True
     return False
 
+# Function to get all networks in an organization
+def get_all_networks(dashboard, orgId):
+    try:
+        networks = dashboard.organizations.getOrganizationNetworks(orgId)
+        return networks
+    except Exception as e:
+        print(f"Error retrieving networks for organization {orgId}: {e}")
+        return []
+    
+# Function to get all L3 Network Firewall Rules
+def get_all_l3_firewall_rules(dashboard, networkId):
+    try:
+        rules = dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules(networkId)
+        return rules
+    except Exception as e:
+        print(f"Error retrieving L3 firewall rules for network {networkId}: {e}")
+        return []
