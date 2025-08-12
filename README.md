@@ -31,9 +31,20 @@ pip install -r requirements.txt
 ## 🚀 Scripts Overview
 Each script is located in the scripts/ directory and can be run individually. Some require corresponding CSV files in the data/ folder.
 
-| Script Name                   | Description                                               |
-|-------------------------------|-----------------------------------------------------------|
-| claim_devices.py              | Claims devices to networks using serial numbers           |
+| Script Name                       | Description                                               |
+|-----------------------------------|-----------------------------------------------------------|
+| claim_devices.py                  | Claims devices to networks using serial numbers.          |
+| audit_unused_policy_objects.py    | Identify and list unused policy objects.                  |
+| create_policy_object_groups.py    | Create new policy object groups in Meraki.                |
+| create_policy_objects.py          | Add new policy objects to Meraki.                         |
+| delete_group_policy_objects.py    | Remove policy objects from specific groups.               |
+| delete_policy_objetcs.py          | Permanently delete selected Meraki policy objects.        |
+| export_policy_objects.py          | Export all policy objects to external file.               |
+| export_policy_object_groups.py    | Save all policy object groups to file.                    |
+| find_duplicate_policy_objects.py  | Detect duplicate policy objects by attributes.            |
+| policy_object_group_sync.py       | Synchronise object groups between Meraki networks.        |
+| update_policy_object_groups.py    | Modify existing policy object group settings.             |
+| update_policy_objects.py          | Update properties of existing policy objects.             |
 
 
 ## 📁 Data Files
