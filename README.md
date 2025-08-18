@@ -45,6 +45,7 @@ Each script is located in the scripts/ directory and can be run individually. So
 | policy_object_group_sync.py       | Synchronise object groups between Meraki networks.        |
 | update_policy_object_groups.py    | Modify existing policy object group settings.             |
 | update_policy_objects.py          | Update properties of existing policy objects.             |
+| validate_policy_object_names.py   | Validate and export Meraki policy objects.                |
 
 
 ## 📁 Data Files
