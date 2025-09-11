@@ -3,7 +3,6 @@ import os
 import csv
 from pathlib import Path
 import logging
-import re
 import argparse
 
 # Add parent path for imports
@@ -76,21 +75,18 @@ def export_differences_to_csv(differences, output_path='content_filtering_differ
         logger.error(f"Failed to write differences CSV: {e}")
 
 
-def main():
+def run_content_filtering_report(output_filename="content_filtering_status_report.csv", network_filter=None, compare_to_baseline=False):
     org_id = get_organization_id(dashboard)
     if not org_id:
-        logger.error("Organization ID not found.")
-        return
+        raise Exception("Organization ID not found.")
     
     all_networks = get_all_networks(dashboard, org_id, prod=True)
     if not all_networks:
-        logger.warning("No production networks found.")
-        return
+        return [], "No production networks found."
     
-    if args.network:
-        filter_value = args.network.strip().upper()
+    if network_filter:
+        filter_value = network_filter.strip().upper()
         all_networks = [net for net in all_networks if filter_value in net['name'].upper()]
-        logger.info(f"Filtered networks using --networks '{filter_value}': {len(all_networks)} found.")
     
     results = []
     
@@ -98,15 +94,10 @@ def main():
         network_name = network['name']
         network_id = network['id']
 
-        if not network_id:
-            logger.warning(f"Network ID not found for {network_name}")
-            continue
-
-        logger.info(f"Fetching content filtering settings for {network_name}...")
         try:
             settings = content_filtering_get_current_settings(dashboard, network_id)
         except Exception as e:
-            logger.error(f"Error fetching settings for {network_name}: {e}")
+            logging.error(f"Error fetching settings for {network_name}: {e}")
             continue
 
         blocked_categories = ', '.join(cat['name'] for cat in settings.get('blockedUrlCategories', []) if 'name' in cat)
@@ -121,9 +112,10 @@ def main():
             'allowed_urls': allowed_urls
         })
 
-    export_content_filtering_report_to_csv(results, args.output)
+    output_path = Path(__file__).resolve().parent.parent.parent / "output" / output_filename
+    export_content_filtering_report_to_csv(results, output_path)
 
-    if args.difference:
+    if compare_to_baseline:
 
         baseline_config = {
             "blocked_categories": {
@@ -146,8 +138,8 @@ def main():
         if differences:
             output_diff_path = Path(__file__).resolve().parent.parent.parent / "output" / "content_filtering_differences.csv"
             export_differences_to_csv(differences, output_diff_path)
+            return results, f"Differences saved to {output_diff_path}"
         else:
-            logger.info("All networks match the baseline.")
+            return results, "All networks match the baseline."
 
-if __name__ == "__main__":
-    main()
+    return results, f"Report saved to {output_path}"

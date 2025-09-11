@@ -1,26 +1,12 @@
-import sys
-import os
 import csv
 from pathlib import Path
 import logging
-import argparse
-
-# Add parent path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.policy_objects import is_policy_object_present, get_policy_object_id
 from meraki_utils.helpers import contains_letters
 from meraki_utils.logger import setup_logger
-
-parser = argparse.ArgumentParser(description="Create Meraki policy object from a CSV file")
-parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-args = parser.parse_args()
-
-setup_logger(debug=args.debug)
-logger = logging.getLogger(__name__)
-
 
 def load_csv(file_path):
     objects = []
@@ -33,18 +19,29 @@ def load_csv(file_path):
             })
     return objects
 
-def main():
-    orgId = get_organization_id(dashboard)
-    if not orgId:
-        print("Organization ID not found.")
-        return
+def create_policy_objects(csv_file, debug=False, log_callback=None):
+    setup_logger(debug=debug)
+    logger = logging.getLogger(__name__)
+
+    def log(msg, level="info"):
+        if log_callback:
+            log_callback(msg)
+        getattr(logger, level)(msg)
+
+    log("🚀 Starting policy objects creation...")
+
+    org_id = get_organization_id(dashboard)
+    if not org_id:
+        log("❌ Organization ID not found.")
+        return None
     
-    csv_path = Path(__file__).resolve().parent.parent / "data" / "policy_objects.csv"
+    csv_path = Path(csv_file)
     if not csv_path.exists():
-        print(f"CSV file not found at {csv_path}")
-        return
+        log(f"❌ CSV file not found: {csv_path}")
+        return None
 
     objects = load_csv(csv_path)
+
     new_objects = []
     existing_objects = []
 
@@ -52,29 +49,32 @@ def main():
         name = obj['name']
         ip = obj['ip']
 
-        if not is_policy_object_present(dashboard, orgId, name, ip):
-            print(f"➕ Creating policy object: {name} ({ip})")
+        if not is_policy_object_present(dashboard, org_id, name, ip):
+            log(f"➕ Creating policy object: {name} ({ip})")
             object_type = contains_letters(ip)
             try:
                 if object_type == 'cidr':
-                    response = dashboard.organizations.createOrganizationPolicyObject(orgId, name=name, category='network', type='cidr', cidr=ip)
+                    response = dashboard.organizations.createOrganizationPolicyObject(org_id, name=name, category='network', type='cidr', cidr=ip)
                 elif object_type == 'fqdn':
-                    response = dashboard.organizations.createOrganizationPolicyObject(orgId, name=name, category='network', type='fqdn', fqdn=ip)
+                    response = dashboard.organizations.createOrganizationPolicyObject(org_id, name=name, category='network', type='fqdn', fqdn=ip)
                 else:
-                    print(f"❌ Unsupported IP format for {name}: {ip}")
+                    log(f"❌ Unsupported IP format for {name}: {ip}")
                     continue
                 
                 new_objects.append(response['id'])
             except Exception as e:
-                print(f"❌ Error creating object {name}: {e}")
+                log(f"❌ Error creating object {name}: {e}")
         else:
-            print(f"✅ Object {name} already exists.")
-            obj_id = get_policy_object_id(dashboard, orgId, name, ip)
+            log(f"✅ Object {name} already exists.")
+            obj_id = get_policy_object_id(dashboard, org_id, name, ip)
             existing_objects.append(obj_id)
 
-    print("\nSummary:")
-    print(f"Newly created objects: {len(new_objects)}")
-    print(f"Existing objects: {len(existing_objects)}")
+    summary = f"\n📋 Summary:\n  ➕ Newly Created: {len(new_objects)}\n  ⏭️ Exisiting Objects: {len(existing_objects)}"
+    log(summary)
+
+    return {
+        "newly_created": new_objects,
+        "exisiting_objects": existing_objects,
+        "summary": summary
+    }
   
-if __name__ == "__main__":
-    main()

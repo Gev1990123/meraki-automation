@@ -1,38 +1,50 @@
-import sys
-import os
 import csv
 from pathlib import Path
 import logging
-import argparse
-
-# Add parent path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from meraki_utils.config import dashboard
 from meraki_utils.functions import get_organization_id
 from meraki_utils.policy_objects import get_all_policy_objects
 from meraki_utils.logger import setup_logger
 
-parser = argparse.ArgumentParser(description="Export Meraki policy objects")
-parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-args = parser.parse_args()
+def write_csv(csv_file, group_objects):
+    try:
+        path = Path(csv_file)
+        with path.open(mode='w', newline='') as outfile:
+            fieldnames = ['id', 'type', 'name', 'value']
+            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+            writer.writeheader()
 
-# Setup logging
-setup_logger(debug=args.debug)
-logger = logging.getLogger(__name__)
+            for obj in group_objects:
+                writer.writerow(obj)
 
-def main():
-    orgId = get_organization_id(dashboard)
-    if not orgId:
-        print("Organization ID not found.")
-        return
+        return True, f"✅ Successfully wrote policy object groups to: {csv_file}"
+    except Exception as e:
+        return False, f"❌ Failed to write to file: {e}"
+
+
+def export_policy_objects(csv_file, debug=False, log_callback=None):
+    setup_logger(debug=debug)
+    logger = logging.getLogger(__name__)
+
+    def log(msg, level="info"):
+        if log_callback:
+            log_callback(msg)
+        getattr(logger, level)(msg)
+
+    log("🚀 Starting export of policy object groups...")
+
+    org_id = get_organization_id(dashboard)
+    if not org_id:
+        log("❌ Organization ID not found.")
+        return None
     
     current_objects = []
 
     try:
-        policy_objects = get_all_policy_objects(dashboard, orgId)
+        policy_objects = get_all_policy_objects(dashboard, org_id)
     except Exception as e:
-        print(f"❌ Failed to fetch policy objects: {e}")
+        log(f"❌ Failed to fetch policy objects: {e}")
         return
 
     for obj in policy_objects:
@@ -51,15 +63,16 @@ def main():
                 'value': obj['cidr']
             })
 
-    output_path = Path(__file__).resolve().parent.parent.parent / "output" / "policy_objects_output.csv"
+    success, result_message = write_csv(csv_file, current_objects)
+    log(result_message)
 
+    if success:
+        summary = f"✅ Exported {len(current_objects)} policy object group members."
+        log(summary)
 
-    with output_path.open(mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=["id", "name", "type", "value"])
-        writer.writeheader()
-        writer.writerows(current_objects)
-
-    print(f"✅ Exported {len(current_objects)} policy objects to {output_path}")
-
-if __name__ == "__main__":
-    main()
+        return {
+            "count": len(current_objects),
+            "summary": summary
+        }
+    else:
+        return None
