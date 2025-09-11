@@ -60,19 +60,19 @@ def export_results_to_csv(results, output_path):
 #    xx
 
 
-def main():
-    org_id = get_organization_id(dashboard)
-    if not org_id:
-        logger.error("Organization ID not found.")
-        return
+def validate_policy_objects(dashboard, org_id, output_path):
+    from meraki_utils.policy_objects import get_all_policy_objects
     
     all_policy_objects = get_all_policy_objects(dashboard, org_id)
 
     if not all_policy_objects:
         logger.info(f"No policy objects found!")
-        return
+        return []
 
     results = []
+
+    global seen_names
+    seen_names = set()  # reset for each run
 
     for policy_object in all_policy_objects:
         name = policy_object.get('name')
@@ -92,8 +92,5 @@ def main():
         for error in errors:
             logger.error(f"{name} - {error}")
 
-    csv_path = Path(__file__).resolve().parent.parent.parent / "output" / args.output
-    export_results_to_csv(results, csv_path)
-
-if __name__ == "__main__":
-    main()
+    export_results_to_csv(results, output_path)
+    return results

@@ -1,69 +1,88 @@
-import sys
-import os
 import csv
 from pathlib import Path
 import logging
-import argparse
-
-# Add parent path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from meraki_utils.config import dashboard
 from meraki_utils.functions import get_organization_id
 from meraki_utils.policy_objects import get_all_policy_objects, get_all_policy_object_groups, get_policy_object_by_id
 from meraki_utils.logger import setup_logger
 
-parser = argparse.ArgumentParser(description="Export Meraki Policy Object Groups")
-parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-args = parser.parse_args()
+def write_csv(csv_file, group_objects):
+    try:
+        path = Path(csv_file)
+        with path.open(mode='w', newline='') as outfile:
+            fieldnames = ['group_name', 'object_name', 'object_type', 'object_value']
+            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+            writer.writeheader()
 
-# Setup logging
-setup_logger(debug=args.debug)
-logger = logging.getLogger(__name__)
+            for obj in group_objects:
+                writer.writerow(obj)
 
-def main():
-    orgId = get_organization_id(dashboard)
-    if not orgId:
-        print("Organization ID not found.")
-        return
+        return True, f"✅ Successfully wrote policy object groups to: {csv_file}"
+    except Exception as e:
+        return False, f"❌ Failed to write to file: {e}"
+
+
+def export_policy_object_groups(csv_file, debug=False, log_callback=None):
+    setup_logger(debug=debug)
+    logger = logging.getLogger(__name__)
+
+    def log(msg, level="info"):
+        if log_callback:
+            log_callback(msg)
+        getattr(logger, level)(msg)
+
+    log("🚀 Starting export of policy object groups...")
+
+    org_id = get_organization_id(dashboard)
+    if not org_id:
+        log("❌ Organization ID not found.")
+        return None
 
     try:
-        group_objects = get_all_policy_object_groups(dashboard, orgId)
+        group_objects = get_all_policy_object_groups(dashboard, org_id)
     except Exception as e:
-        print(f"❌ Failed to fetch group objects: {e}")
+        log(f"❌ Failed to fetch group objects: {e}")
         return
 
     current_objects = []
 
     for group in group_objects:
-        groupId = group['id']
         groupName = group['name']
-        objectIds = group.get('objectIds', [])
+        object_ids = group.get('objectIds', [])
 
-        for objectId in objectIds:
+        for object_id in object_ids:
             try:
-                obj = get_policy_object_by_id(dashboard, orgId, objectId)
+                obj = get_policy_object_by_id(dashboard, org_id, object_id)
+
+                type = obj.get("type", "")
+                if type == 'fqdn':
+                    object_value = obj.get("fqdn", "")
+                elif type == 'cidr':
+                    object_value = obj.get("cidr", "")
+
                 current_objects.append({
                     "group_name": groupName,
                     "object_name": obj.get("name", ""),
-                    "object_type": obj.get("type", ""),
-                    "object_value": obj.get("value", ""),
+                    "object_type": type,
+                    "object_value": object_value
 
                 })
             except Exception as e:
-                logger.warning(f"⚠️ Failed to fetch object '{objectId}' in group '{groupName}': {e}")
+                log(f"⚠️ Failed to fetch object '{object_id}' in group '{groupName}': {e}")
 
 
+    success, result_message = write_csv(csv_file, current_objects)
+    log(result_message)
 
-    output_path = Path(__file__).resolve().parent.parent.parent / "output" / "policy_group_objects_output.csv"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if success:
+        summary = f"✅ Exported {len(current_objects)} policy object group members."
+        log(summary)
 
-    with output_path.open(mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=["group_name", "object_name", "object_type", "object_value"])
-        writer.writeheader()
-        writer.writerows(current_objects)
+        return {
+            "count": len(current_objects),
+            "summary": summary
+        }
+    else:
+        return None
 
-    logger.info(f"✅ Exported {len(current_objects)} policy object group members to {output_path}")
-
-if __name__ == "__main__":
-    main()

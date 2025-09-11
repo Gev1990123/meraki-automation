@@ -1,46 +1,56 @@
-import sys
-import os
 import socket
 import csv
 import logging
-import argparse
 from collections import defaultdict
 from pathlib import Path
-
-# Add parent path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.policy_objects import get_all_policy_objects
 from meraki_utils.logger import setup_logger
 
-# CLI arguments
-parser = argparse.ArgumentParser(description="Find duplicate Meraki policy objects by resolved IP")
-parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-args = parser.parse_args()
-
-# Setup logging
-setup_logger(debug=args.debug)
-logger = logging.getLogger(__name__)
-
-def resolve_fqdn(fqdn):
+def resolve_fqdn(fqdn, log):
     try:
         return socket.gethostbyname_ex(fqdn)[2]
     except socket.gaierror:
-        logger.warning(f"⚠️ Could not resolve FQDN: {fqdn}")
+        log(f"⚠️ Could not resolve FQDN: {fqdn}")
         return []
+    
+def write_csv(csv_file, group_objects):
+    try:
+        path = Path(csv_file)
+        with path.open(mode='w', newline='') as outfile:
+            fieldnames = ['object_name', 'object_type', 'object_value', 'resolved_ip']
+            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+            writer.writeheader()
 
-def main():
+            for obj in group_objects:
+                writer.writerow(obj)
+
+        return True, f"✅ Successfully wrote policy object groups to: {csv_file}"
+    except Exception as e:
+        return False, f"❌ Failed to write to file: {e}"
+
+def find_duplicate_policy_objects(csv_file, debug=False, log_callback=None):
+    setup_logger(debug=debug)
+    logger = logging.getLogger(__name__)
+
+    def log(msg, level="info"):
+        if log_callback:
+            log_callback(msg)
+        getattr(logger, level)(msg)
+
+    log("🚀 Finding duplicate policy objects...")
+
     org_id = get_organization_id(dashboard)
     if not org_id:
-        logger.error("❌ Organization ID not found.")
-        return
-
+        log("❌ Organization ID not found.")
+        return None
+    
     try:
         objects = get_all_policy_objects(dashboard, org_id)
     except Exception as e:
-        logger.error(f"❌ Failed to fetch policy objects: {e}")
+        log(f"❌ Failed to fetch policy objects: {e}")
         return
 
     ip_to_objects = defaultdict(list)
@@ -60,12 +70,12 @@ def main():
             continue
 
         if obj_type == 'fqdn' and '*' in value:
-            logger.warning(f"⚠️ Wildcard FQDN '{value}' cannot be resolved via DNS. Skipping.")
+            log(f"⚠️ Wildcard FQDN '{value}' cannot be resolved via DNS. Skipping.")
             continue
 
         resolved_ips = []
         if obj_type == 'fqdn':
-            resolved_ips = resolve_fqdn(value)
+            resolved_ips = resolve_fqdn(value, log)
         elif obj_type in ['ip', 'cidr']:
             resolved_ips = [value]
 
@@ -84,20 +94,19 @@ def main():
                 duplicate_rows.append(entry)
 
     if not duplicate_rows:
-        logger.info("✅ No duplicates found.")
+        log("✅ No duplicates found.")
         return
+    
+    success, result_message = write_csv(csv_file, duplicate_rows)
+    log(result_message)
 
-    output_path = Path(__file__).resolve().parent.parent.parent / "output"
-    output_path.mkdir(exist_ok=True)
-    output_file = output_path / "duplicate_policy_objects.csv"
+    if success: 
+        summary = f"Number of duplicate policy objects {len(duplicate_rows)}."
+        log(summary)
 
-    with output_file.open("w", newline='') as csvfile:
-        fieldnames = ["object_name", "object_type", "object_value", "resolved_ip"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(duplicate_rows)
-
-    logger.info(f"✅ Duplicates exported to: {output_file}")
-
-if __name__ == "__main__":
-    main()
+        return {
+            "count": len(duplicate_rows),
+            "summary": summary
+        }
+    else:
+        return None

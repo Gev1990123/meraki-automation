@@ -1,64 +1,149 @@
-# Meraki Automation Scripts
+# Meraki Automation App
 
-This repository contains Python scripts to automate tasks in Meraki, such as device claiming, VLAN management, configuration templates, firewall settings, content filtering, and more.
+A desktop GUI application built with Tkinter to simplify and unify automations for Meraki. Previously a collection of individual scripts, this project now provides a central interface to manage tasks such as device claiming, VLAN management, firewall settings, template application, content filtering and more.
+
 ---
 
-## 📁 Project Structure (Recommended)
-| Folder / File     | Description                                           |
-|-------------------|-------------------------------------------------------|
-| scripts/          | Python automation scripts                             |
-| meraki_utils/     | Helper functions organized by domain (e.g. org)       |
-| data/             | Input CSV/YAML files                                  |
-| output/           | Generated output files (e.g., reports, logs)          |
-| .env              | Environment variables (do not commit)                 |
-| requirements.txt  | Python dependencies                                   |
-| README.md         | Project documentation                                 |
+## 🛠 Features
+
+- Graphical user interface (Tkinter) for managing Meraki operations  
+- Modular windows for different tasks (e.g. claims, updates, reporting)  
+- Under-the-hood logic split out into reusable modules  
+- Ability to load input from files (CSV, YAML, etc.)  
+- Generates output/log files for reporting and auditing  
+
+---
+
+# 🧠 Meraki Automation App
+
+A desktop GUI application built with Tkinter to simplify and unify automations for Cisco Meraki. Previously a collection of individual scripts, this project now provides a central interface to manage tasks such as device claiming, VLAN management, firewall rules, template application, content filtering, and more.
+
+---
+
+## 🛠 Features
+
+- Graphical user interface (Tkinter) for managing Meraki operations  
+- Modular windows for different tasks (e.g. claims, updates, reporting)  
+- Under-the-hood logic split into reusable modules  
+- Ability to load input from files (CSV, YAML, etc.)  
+- Generates output/log files for reporting and auditing  
+
+---
+
+## 📂 Project Structure
+
+```text
+meraki-automation/
+│
+├── gui/
+│   ├── windows/
+│   │   ├── audit_unused_policy_objects_window.py
+│   │   ├── claim_devices_window.py
+│   │   ├── content_filtering_blocked_requests_by_client_window.py
+│   │   ├── content_filtering_status_report_window.py
+│   │   ├── create_firewall_rule_window.py
+│   │   ├── create_policy_object_groups_window.py
+│   │   ├── create_policy_objects_window.py
+│   │   ├── delete_group_policy_objects_window.py
+│   │   ├── delete_policy_objects_window.py
+│   │   ├── export_policy_object_groups_window.py
+│   │   ├── export_policy_objects_window.py
+│   │   ├── find_duplicate_policy_objects_window.py
+│   │   ├── update_policy_object_groups_window.py
+│   │   ├── update_policy_objects_window.py
+│   │   └── validate_policy_object_names_window.py
+│   └── main_app.py               # Tkinter main window & application startup
+│
+├── meraki_utils/
+│   ├── amp.py
+│   ├── config.py
+│   ├── content_filtering.py
+│   ├── firewall.py
+│   ├── helpers.py
+│   ├── ipds.py
+│   ├── logger.py
+│   ├── network.py
+│   ├── organisation.py
+│   ├── policy_objects.py
+│   ├── site_codes.py
+│   ├── traffic_shaping.py
+│   ├── vlan.py
+│   └── vpn.py
+│
+├── scripts/
+│   ├── auditing_validation/
+│   │   └── validate_policy_object_names.py
+│   ├── content_filtering/
+│   │   ├── content_filtering_blocked_requests_by_client.py
+│   │   └── content_filtering_status_report.py
+│   ├── device_admin/
+│   │   └── claim_devices.py
+│   ├── firewall/
+│   │   └── create_firewall_rule.py
+│   └── policy_objects/
+│       ├── audit_unused_policy_objects.py
+│       ├── create_policy_object_groups.py
+│       ├── create_policy_objects.py
+│       ├── delete_group_policy_objects.py
+│       ├── delete_policy_objects.py
+│       ├── export_policy_object_groups.py
+│       ├── export_policy_objects.py
+│       ├── find_duplicate_policy_objects.py
+│       ├── update_policy_object_groups.py
+│       └── update_policy_objects.py
+│
+├── requirements.txt
+├── .env (not checked in)
+└── README.md
 
 
-## ⚙️ Setup
-### 1. Clone the repository
-git clone https://github.com/Gev1990123/meraki-automation.git
-cd meraki-automation
+---
 
-### 2. Configure environment variables
-Create a .env file in the root directory with the following values:
-MERAKI_API_KEY=your_meraki_api_key
-MERAKI_ORG_NAME=your_org_name
+## ⚙️ Setup / Installation
 
-### 3. Install Python dependencies
-pip install -r requirements.txt
+1. Clone the repository  
+   ```bash
+   git clone https://github.com/Gev1990123/meraki-automation.git
+   cd meraki-automation
+2. Create a virtual environment and activate it (recommended)
+    python3 -m venv venv
+    source venv/bin/activate   # On Linux / macOS
+    venv\Scripts\activate      # On Windows
+3. Install dependencies
+    pip install -r requirements.txt
+4. Create a .env file in the project root with required environment variables:
+    MERAKI_API_KEY=your_meraki_api_key
+    MERAKI_ORG_NAME=your_meraki_organization
 
-## 🚀 Scripts Overview
-Each script is located in the scripts/ directory and can be run individually. Some require corresponding CSV files in the data/ folder.
+---
 
-| Script Name                                           | Description                                                           |
-|-------------------------------------------------------|-----------------------------------------------------------------------|
-| claim_devices.py                                      | Claims devices to networks using serial numbers.                      |
-| audit_unused_policy_objects.py                        | Identify and list unused policy objects.                              |
-| create_policy_object_groups.py                        | Create new policy object groups in Meraki.                            |
-| create_policy_objects.py                              | Add new policy objects to Meraki.                                     |
-| delete_group_policy_objects.py                        | Remove policy objects from specific groups.                           |
-| delete_policy_objetcs.py                              | Permanently delete selected Meraki policy objects.                    |
-| export_policy_objects.py                              | Export all policy objects to external file.                           |
-| export_policy_object_groups.py                        | Save all policy object groups to file.                                |
-| find_duplicate_policy_objects.py                      | Detect duplicate policy objects by attributes.                        |
-| policy_object_group_sync.py                           | Synchronise object groups between Meraki networks.                    |
-| update_policy_object_groups.py                        | Modify existing policy object group settings.                         |
-| update_policy_objects.py                              | Update properties of existing policy objects.                         |
-| validate_policy_object_names.py                       | Validate and export Meraki policy objects.                            |
-| content_filtering_status_report.py                    | Generate content filtering report for networks.                       |
-| content_filtering_blocked_requests_by_client.py       | Generate content filtering report for blocked requests by client      |
+## 🚀 Usage
+To run the application:
 
+python main_app.py
 
-## 📁 Data Files
-Place your CSV files in the data/ folder. Ensure they follow the expected structure (column headers, no missing values).
+Once open, the GUI will allow you to:
 
-## ✅ Output
-Scripts may output logs or results into the output/ folder for review or backup purposes.
+Select which function you want (e.g. Claim Devices, Update VLANs, Generate Reports, etc.)
 
-## 🧪 Example
-Claim devices to networks:
+Provide input (files / form entries)
 
-python scripts/claim_devices.py
+Execute the task
 
-For questions or improvements, feel free to open an issue or submit a PR.
+View output or results in the “output” directory, or via popup messages
+
+---
+
+## 🧪 TODO / Roadmap
+- Better input validation & error handling
+- Add progress bars or loading indicators
+- Add ability to load/save session configs
+- Unit tests for logic modules
+- Create executable (.exe/.app) for non-developers
+- Add dark mode?
+
+--- 
+
+## 👤 Author
+Gev1990123
+https://github.com/Gev1990123

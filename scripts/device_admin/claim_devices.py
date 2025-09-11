@@ -4,7 +4,7 @@ import csv
 from pathlib import Path
 
 # Add parent path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id

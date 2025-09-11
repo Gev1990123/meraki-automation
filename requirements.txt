@@ -1,0 +1,7 @@
+tk
+requests
+python-dotenv
+pandas
+openpyxl
+pyyaml
+meraki
