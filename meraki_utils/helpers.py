@@ -1,5 +1,7 @@
 import ipaddress
 from meraki_utils.logger import log
+from pathlib import Path
+import csv
 
 # Function Convert mbps to kbps
 def convert_mbps_to_kbps(value):
@@ -38,3 +40,19 @@ def determine_object_type(object_ip):
         # If it fails, assume it a FQDN
         return 'fqdn'
     
+# Write CSV File
+def write_csv(csv_file, data, fieldnames):
+    try: 
+        path = Path(csv_file)
+        with path.open(mode='w', newline='') as outfile:
+            writer = csv.DictWriter(outfile, fieldnames)
+            writer.writeheader()
+
+            for object in data:
+                writer.writerow(object)
+        
+        return True, f"✅ Successfully wrote policy object groups to: {csv_file}"
+    except Exception as e:
+        return False, f"❌ Failed to write to file: {e}"
+
+

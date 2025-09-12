@@ -1,7 +1,3 @@
-import sys
-import os
-import csv
-from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -9,20 +5,7 @@ from meraki_utils.logger import log, set_log_callback
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.network import get_all_networks, get_network_events
-
-def write_csv(csv_file, data):
-    try: 
-        path = Path(csv_file)
-        with path.open('w', newline='', encoding='utf-8') as outfile:
-            fieldnames = ['network', 'client', 'blocked_requests']
-            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(data)
-
-        return True, f"✅ Successfully wrote report to: {csv_file}"
-    except Exception as e:
-        return False, f"❌ Failed to write to file: {e}"
-    
+from meraki_utils.helpers import write_csv
 
 def run_blocked_request_report(csv_file, days=1, network_filter=None, output="blocked_requests_by_client.csv", debug=False, log_callback=None):
     if log_callback:
@@ -84,7 +67,7 @@ def run_blocked_request_report(csv_file, days=1, network_filter=None, output="bl
                 "blocked_requests": count
             })
 
-    success, results_message = write_csv(csv_file, results)
+    success, results_message = write_csv(csv_file=csv_file, data=results, fieldnames = ['network', 'client', 'blocked_requests'])
     log(results_message)
 
     if success:
