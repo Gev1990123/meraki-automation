@@ -1,27 +1,9 @@
-import csv
-from pathlib import Path
-import logging
-
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.network import get_network_id, get_all_networks
 from meraki_utils.content_filtering import content_filtering_get_current_settings
 from meraki_utils.logger import log, set_log_callback
-
-def write_csv(csv_file, data):
-    try:
-        path = Path(csv_file)
-        with path.open('w', newline='', encoding='utf-8') as outfile:
-            fieldnames = ['network_name', 'category_missing', 'category_extra', 
-                          'blocked_urls_missing', 'blocked_urls_extra', 
-                          'allowed_urls_missing', 'allowed_urls_extra']
-            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(data)
-
-        return True, f"✅ Successfully wrote report to: {csv_file}"
-    except Exception as e:
-        return False, f"❌ Failed to write to file: {e}"
+from meraki_utils.helpers import write_csv
 
 def compare_to_baseline(results, baseline):
     differences = []
@@ -112,7 +94,9 @@ def run_content_filtering_report(csv_file, network_filter=None, debug=False, log
     differences = compare_to_baseline(results, baseline_config)
 
     if differences:
-        success, results_message = write_csv(csv_file, differences)
+        success, results_message = write_csv(csv_file=csv_file, data=differences, fieldnames = ['network_name', 'category_missing', 'category_extra', 
+                          'blocked_urls_missing', 'blocked_urls_extra', 
+                          'allowed_urls_missing', 'allowed_urls_extra'])
         log(results_message)
 
         if success:

@@ -1,26 +1,8 @@
-import csv
-from pathlib import Path
-
 from meraki_utils.config import dashboard
 from meraki_utils.functions import get_organization_id
 from meraki_utils.policy_objects import get_all_policy_objects
 from meraki_utils.logger import log, set_log_callback
-
-def write_csv(csv_file, group_objects):
-    try:
-        path = Path(csv_file)
-        with path.open(mode='w', newline='') as outfile:
-            fieldnames = ['id', 'type', 'name', 'value']
-            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-            writer.writeheader()
-
-            for obj in group_objects:
-                writer.writerow(obj)
-
-        return True, f"✅ Successfully wrote policy object groups to: {csv_file}"
-    except Exception as e:
-        return False, f"❌ Failed to write to file: {e}"
-
+from meraki_utils.helpers import write_csv
 
 def export_policy_objects(csv_file, debug=False, log_callback=None):
     if log_callback:
@@ -56,8 +38,8 @@ def export_policy_objects(csv_file, debug=False, log_callback=None):
                 'type': obj['type'],
                 'value': obj['cidr']
             })
-
-    success, result_message = write_csv(csv_file, current_objects)
+    
+    success, result_message = write_csv(csv_file=csv_file, data=current_objects, fieldnames=['id', 'type', 'name', 'value'])
     log(result_message)
 
     if success:
