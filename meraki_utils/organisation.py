@@ -1,3 +1,4 @@
+from meraki_utils.logger import log
 import os
 from dotenv import load_dotenv
 
@@ -39,3 +40,12 @@ def is_config_template_present(dashboard, orgId, template_name):
         if template['name'] == template_name:
             return True
     return False
+
+# Function to claim a new device
+def claim_network_device(dashboard, serial, networkId):
+    try:
+        response = dashboard.networks.claimNetworkDevices(networkId, serials=[serial])
+        return response
+    except Exception as e:
+        log(f"❌ Failed to claim device {serial} to network {networkId}: {e}")
+        return None

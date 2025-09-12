@@ -1,3 +1,5 @@
+from meraki_utils.logger import log
+
 # Function to get the current settings of uplink bandwidth
 def traffic_shaping_get_uplink_bandwidth(dashboard, networkId):
     return dashboard.appliance.getNetworkApplianceTrafficShapingUplinkBandwidth(networkId)
@@ -11,7 +13,7 @@ def traffic_shaping_get_custom_performance_class_id(dashboard, networkId, name):
                 return cp_class.get('customPerformanceClassId',[])
         return None
     except Exception as e:
-        print(f"Error retrieving custom performance classes: {e}")
+        log(f"Error retrieving custom performance classes: {e}")
         return None
     
 # Function to get the settings of a custom performance class by ID
@@ -27,7 +29,7 @@ def traffic_shaping_get_custom_performance_class_status(dashboard, networkId, cp
                 return True
         return False
     except Exception as e:
-        print(f"Error retrieving custom performance classes: {e}")
+        log(f"Error retrieving custom performance classes: {e}")
         return False
     
 # Function to get the settings of the uplink selection

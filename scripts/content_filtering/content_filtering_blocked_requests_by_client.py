@@ -2,66 +2,48 @@ import sys
 import os
 import csv
 from pathlib import Path
-import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-# Add parent path for imports
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
-from meraki_utils.logger import setup_logger
+from meraki_utils.logger import log, set_log_callback
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.network import get_all_networks, get_network_events
 
-logger = logging.getLogger(__name__)
-
-
-def export_to_csv(data, output_path):
-    fieldnames = ['network', 'client', 'blocked_requests']
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    try:
-        with output_path.open('w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+def write_csv(csv_file, data):
+    try: 
+        path = Path(csv_file)
+        with path.open('w', newline='', encoding='utf-8') as outfile:
+            fieldnames = ['network', 'client', 'blocked_requests']
+            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(data)
-        logger.info(f"✅ Data successfully exported to {output_path.resolve()}")
+
+        return True, f"✅ Successfully wrote report to: {csv_file}"
     except Exception as e:
-        logger.error(f"❌ Failed to export data to CSV: {e}")
+        return False, f"❌ Failed to write to file: {e}"
+    
 
+def run_blocked_request_report(csv_file, days=1, network_filter=None, output="blocked_requests_by_client.csv", debug=False, log_callback=None):
+    if log_callback:
+        set_log_callback(log_callback)
 
-def run_blocked_request_report(days=1, network_filter=None, output="blocked_requests_by_client.csv", debug=False):
-    """
-    Run the blocked content filtering report.
-
-    Args:
-        days (int): How many days back to check.
-        network_filter (str): Optional substring to filter network names.
-        output (str): Filename for output CSV.
-        debug (bool): Enable debug logging.
-
-    Returns:
-        str: Message indicating result.
-    """
-    setup_logger(debug=debug)
-    logger = logging.getLogger(__name__)
+    log("🔄 Running blocked request report...")
 
     org_id = get_organization_id(dashboard)
     if not org_id:
-        logger.error("❌ Organization ID not found.")
-        return "❌ Organization ID not found."
+        log("❌ Organization ID not found.")
+        return []
 
     all_networks = get_all_networks(dashboard, org_id)
     if not all_networks:
-        logger.warning("⚠️ No production networks found.")
-        return "⚠️ No production networks found."
+        log("⚠️ No production networks found.")
+        return []
 
     if network_filter:
         filter_value = network_filter.strip().upper()
         all_networks = [net for net in all_networks if filter_value in net['name'].upper()]
-        logger.info(f"🔍 Filtered networks using '{filter_value}': {len(all_networks)} found.")
+        log(f"🔍 Filtered networks using '{filter_value}': {len(all_networks)} found.")
 
     time_since = (datetime.utcnow() - timedelta(days=days)).isoformat() + "Z"
     results = []
@@ -72,10 +54,10 @@ def run_blocked_request_report(days=1, network_filter=None, output="blocked_requ
         product_types = network.get('productTypes', [])
 
         if 'appliance' not in product_types:
-            logger.debug(f"⏭️ Skipping {network_name} (no appliance)")
+            log(f"⏭️ Skipping {network_name} (no appliance)")
             continue
 
-        logger.info(f"📡 Fetching events for {network_name}...")
+        log(f"📡 Fetching events for {network_name}...")
 
         try:
             events = get_network_events(
@@ -86,7 +68,7 @@ def run_blocked_request_report(days=1, network_filter=None, output="blocked_requ
                 event_type='contentFilteringBlocked'
             )
         except Exception as e:
-            logger.error(f"❌ Error fetching events for {network_name}: {e}")
+            log(f"❌ Error fetching events for {network_name}: {e}")
             continue
 
         blocked_by_client = defaultdict(int)
@@ -102,12 +84,15 @@ def run_blocked_request_report(days=1, network_filter=None, output="blocked_requ
                 "blocked_requests": count
             })
 
-    output_path = Path(__file__).resolve().parent.parent.parent / "output" / output
+    success, results_message = write_csv(csv_file, results)
+    log(results_message)
 
-    if results:
-        export_to_csv(results, output_path)
-        return f"✅ Report generated: {output_path}"
-    else:
-        logger.info("📭 No blocked content filtering events found.")
-        return "📭 No blocked content filtering events found."
+    if success:
+        summary = f"✅ Exported {len(results)} blocked requests."
+        log(summary)
+
+        return {
+            "count": len(results),
+            "summary": summary
+        }
 

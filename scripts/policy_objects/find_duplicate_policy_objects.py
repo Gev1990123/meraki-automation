@@ -1,13 +1,12 @@
 import socket
 import csv
-import logging
 from collections import defaultdict
 from pathlib import Path
 
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.policy_objects import get_all_policy_objects
-from meraki_utils.logger import setup_logger
+from meraki_utils.logger import log, set_log_callback
 
 def resolve_fqdn(fqdn, log):
     try:
@@ -32,13 +31,8 @@ def write_csv(csv_file, group_objects):
         return False, f"❌ Failed to write to file: {e}"
 
 def find_duplicate_policy_objects(csv_file, debug=False, log_callback=None):
-    setup_logger(debug=debug)
-    logger = logging.getLogger(__name__)
-
-    def log(msg, level="info"):
-        if log_callback:
-            log_callback(msg)
-        getattr(logger, level)(msg)
+    if log_callback:
+        set_log_callback(log_callback)
 
     log("🚀 Finding duplicate policy objects...")
 

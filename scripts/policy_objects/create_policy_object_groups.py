@@ -5,7 +5,7 @@ import logging
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.policy_objects import is_policy_object_groups_present
-from meraki_utils.logger import setup_logger
+from meraki_utils.logger import log, set_log_callback
 
 def load_csv(file_path):
     groups = []
@@ -20,13 +20,8 @@ def load_csv(file_path):
 
 
 def create_policy_object_groups(csv_file, debug=False, log_callback=None):
-    setup_logger(debug=debug)
-    logger = logging.getLogger(__name__)
-
-    def log(msg, level="info"):
-        if log_callback:
-            log_callback(msg)
-        getattr(logger, level)(msg)
+    if log_callback:
+        set_log_callback(log_callback)
 
     log("🚀 Starting policy object group creation...")
 

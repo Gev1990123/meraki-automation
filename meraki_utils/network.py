@@ -1,3 +1,5 @@
+from meraki_utils.logger import log
+
 def get_network_name(dashboard, orgId):
     networks = dashboard.organizations.getOrganizationNetworks(orgId)
     networks_list = []
@@ -43,7 +45,7 @@ def get_all_networks(dashboard, orgId, prod=False):
         else:
             return networks
     except Exception as e:
-        print(f"Error retrieving networks for organization {orgId}: {e}")
+        log(f"Error retrieving networks for organization {orgId}: {e}")
         return []
     
 # Function to get all production networks in an organization
@@ -53,7 +55,7 @@ def get_all_prod_networks(dashboard, orgId):
         prod_networks = [network for network in networks if 'PROD' in network.get('name', '')]
         return prod_networks
     except Exception as e:
-        print(f"Error retrieving networks for organization {orgId}: {e}")
+        log(f"Error retrieving networks for organization {orgId}: {e}")
         return []
     
 # Function to get all L3 Network Firewall Rules
@@ -62,7 +64,7 @@ def get_all_l3_firewall_rules(dashboard, networkId):
         rules = dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules(networkId)
         return rules
     except Exception as e:
-        print(f"Error retrieving L3 firewall rules for network {networkId}: {e}")
+        log(f"Error retrieving L3 firewall rules for network {networkId}: {e}")
         return []
     
 # Function to get network events
@@ -87,5 +89,5 @@ def get_network_events(dashboard, networkId, product_type, starting_after=None, 
         return events.get('events', [])
     
     except Exception as e:
-        print(f"Error retrieving network events for network {networkId}: {e}")
+        log(f"Error retrieving network events for network {networkId}: {e}")
         return []

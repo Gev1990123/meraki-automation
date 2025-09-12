@@ -1,3 +1,5 @@
+from meraki_utils.logger import log
+
 # Funtion to get the current mode of Site-to-Site VPN
 def get_vpn_type(dashboard, networkId):
     site_to_siteVPN_config = dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn(networkId)

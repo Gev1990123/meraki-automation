@@ -1,7 +1,6 @@
-tk
-requests
-python-dotenv
-pandas
-openpyxl
-pyyaml
-meraki
+requests==2.31.0
+python-dotenv==1.0.0
+pandas==2.2.2
+openpyxl==3.1.2
+pyyaml==6.0.1
+meraki==1.36.0

@@ -1,3 +1,5 @@
+from meraki_utils.logger import log
+
 # Function to get application categories id
 def firewall_get_application_categories(dashboard, networkId, category_name):
     try:
@@ -5,15 +7,14 @@ def firewall_get_application_categories(dashboard, networkId, category_name):
                
         if isinstance(response, dict) and 'applicationCategories' in response:
             categories = response['applicationCategories']
-            print(categories)
 
         for app_category in categories:
             if app_category['name'].lower() == category_name.lower():
                 return app_category
-        print(f"Category '{category_name}' not found.")
+        log(f"Category '{category_name}' not found.")
         return None
     except Exception as e:
-        print(f"Error retrieving application categories: {e}")
+        log(f"Error retrieving application categories: {e}")
         return None
     
 # Function to get L3 Firewall Rules
