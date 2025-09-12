@@ -1,3 +1,5 @@
+from meraki_utils.logger import log
+
 # Function to confirm if policy object is present
 def is_policy_object_present(dashboard, orgId, object_name, object_ip):
     objects = dashboard.organizations.getOrganizationPolicyObjects(orgId)
@@ -60,7 +62,7 @@ def get_policy_object_by_id(dashboard, orgId, objectId):
         object = dashboard.organizations.getOrganizationPolicyObject(orgId, objectId)
         return object
     except Exception as e:
-        print(f"Error retrieving policy object with ID {objectId}: {e}")
+        log(f"Error retrieving policy object with ID {objectId}: {e}")
         return None
 
 # Function to get policy object from name
@@ -71,7 +73,7 @@ def get_policy_object_by_name(dashboard, orgId, objectName):
             if obj['name'] == objectName:
                 return obj
     except Exception as e:
-        print(f"Error retrieving policy object with ID {objectName}: {e}")
+        log(f"Error retrieving policy object with ID {objectName}: {e}")
         return None
     
 # Function to get all policy objects in an organisation
@@ -80,7 +82,7 @@ def get_all_policy_objects(dashboard, orgId):
         objects = dashboard.organizations.getOrganizationPolicyObjects(orgId)
         return objects
     except Exception as e:
-        print(f"Error retrieving policy objects for organization {orgId}: {e}")
+        log(f"Error retrieving policy objects for organization {orgId}: {e}")
         return []
     
 # Function to get all policy object groups in an organisation
@@ -89,5 +91,5 @@ def get_all_policy_object_groups(dashboard, orgId):
         groups = dashboard.organizations.getOrganizationPolicyObjectsGroups(orgId)
         return groups
     except Exception as e:
-        print(f"Error retrieving policy object groups for organization {orgId}: {e}")
+        log(f"Error retrieving policy object groups for organization {orgId}: {e}")
         return []

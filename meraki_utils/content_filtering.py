@@ -1,3 +1,5 @@
+from meraki_utils.logger import log
+
 # Function to get the ID of a content filtering category
 def content_filtering_category_get_id(dashboard, networkId, category):
     try:
@@ -8,7 +10,7 @@ def content_filtering_category_get_id(dashboard, networkId, category):
                 return item.get('id')
         return None
     except Exception as e:
-        print(f"Error retrieving content filtering categories: {e}")
+        log(f"Error retrieving content filtering categories: {e}")
         return None
     
 # Function to get the current blocked categories and confirm if already is blocked. 
@@ -22,7 +24,7 @@ def content_filtering_category_status(dashboard, networkId, categoryId):
                 return True
         return False
     except Exception as e:
-        print(f"Error retrieving content filtering categories: {e}")
+        log(f"Error retrieving content filtering categories: {e}")
         return None
     
 # Function to get the current settings of Content Filtering
@@ -49,7 +51,7 @@ def content_filtering_url_status(dashboard, networkId, url):
         else:
             return False
     except Exception as e:
-        print(f"Error retrieving content filtering URLs: {e}")
+        log(f"Error retrieving content filtering URLs: {e}")
         return False
     
 # Function to get the current settings of Content Filtering

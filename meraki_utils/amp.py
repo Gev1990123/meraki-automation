@@ -1,10 +1,12 @@
+from meraki_utils.logger import log
+
 #Function to get the current mode of the Advanced Malware Protection (AMP)
 def amp_get_mode(dashboard, networkId):
     try:
         response = dashboard.appliance.getNetworkApplianceSecurityMalware(networkId)
         return response.get('mode') == 'enabled'
     except Exception as e:
-        print(f"Error retrieving AMP mode for network {networkId}: {e}")
+        log(f"Error retrieving AMP mode for network {networkId}: {e}")
         return None
     
 #Function to get if a current url is apart of the allowed URLs

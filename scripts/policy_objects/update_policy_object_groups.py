@@ -1,11 +1,10 @@
 import csv
 from pathlib import Path
-import logging
 
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.policy_objects import is_policy_object_groups_present, get_policy_object_group_by_name, get_policy_object_by_name, get_all_policy_object_groups
-from meraki_utils.logger import setup_logger
+from meraki_utils.logger import log, set_log_callback
 
 def load_csv(file_path):
     objects = []
@@ -18,13 +17,8 @@ def load_csv(file_path):
     return objects
 
 def get_policy_object_groups_for_dropdown(log_callback=None):
-    setup_logger(debug=False)
-    logger = logging.getLogger(__name__)
-
-    def log(msg, level="info"):
-        if log_callback:
-            log_callback(msg)
-        getattr(logger, level)(msg)
+    if log_callback:
+        set_log_callback(log_callback)
 
     log("🔄 Fetching policy object groups...")
 
@@ -42,13 +36,8 @@ def get_policy_object_groups_for_dropdown(log_callback=None):
         return []
 
 def update_policy_objects_in_group(csv_file, policy_object_group, debug=False, log_callback=None):
-    setup_logger(debug=debug)
-    logger = logging.getLogger(__name__)
-
-    def log(msg, level="info"):
-        if log_callback:
-            log_callback(msg)
-        getattr(logger, level)(msg)
+    if log_callback:
+        set_log_callback(log_callback)
 
     log("🚀 Starting update.. ")
 

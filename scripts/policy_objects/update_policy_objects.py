@@ -1,9 +1,7 @@
 import csv
 from pathlib import Path
-import argparse
-import logging
 
-from meraki_utils.logger import setup_logger
+from meraki_utils.logger import log, set_log_callback
 from meraki_utils.config import dashboard
 from meraki_utils.functions import get_organization_id
 from meraki_utils.policy_objects import get_policy_object_by_name
@@ -28,13 +26,8 @@ def load_csv(file_path):
 
 
 def update_policy_objects(csv_file, debug=False, log_callback=None):
-    setup_logger(debug=debug)
-    logger = logging.getLogger(__name__)
-
-    def log(msg, level="info"):
-        if log_callback:
-            log_callback(msg)
-        getattr(logger, level)(msg)
+    if log_callback:
+        set_log_callback(log_callback)
 
     log("🚀 Starting update of policy objects...")
 
@@ -43,7 +36,6 @@ def update_policy_objects(csv_file, debug=False, log_callback=None):
         log("❌ Organization ID not found.")
         return None
     
-
     csv_path = Path(csv_file)
     if not csv_path.exists():
         log(f"❌ CSV file not found: {csv_path}")

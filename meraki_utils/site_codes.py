@@ -1,4 +1,5 @@
 import re
+from meraki_utils.logger import log
 
 site_info = {
     "Birmingham":{
@@ -56,7 +57,6 @@ site_info = {
 site_codes = {
     "BRM": "Birmingham",
     "NWC": "Newcastle",
-    "EXE-MER01": "Shak Dev",
     "BEL": "Belfast",
     "CAR": "Cardiff",
     "EXE": "Exeter",
@@ -64,7 +64,6 @@ site_codes = {
     "LDS": "Leeds",
     "LON": "London",
     "NWT": "Newtown",
-    "Matt": "Birmingham",
 }
 
 

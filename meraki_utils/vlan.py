@@ -1,3 +1,5 @@
+from meraki_utils.logger import log
+
 # Function to get all vlans within a network ID
 def get_vlans(dashboard, networkId):
     vlans = dashboard.appliance.getNetworkApplianceVlans(networkId)

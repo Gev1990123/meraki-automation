@@ -1,11 +1,10 @@
 import csv
 from pathlib import Path
-import logging
 
 from meraki_utils.config import dashboard
 from meraki_utils.functions import get_organization_id
 from meraki_utils.policy_objects import get_all_policy_objects, get_all_policy_object_groups, get_policy_object_by_id
-from meraki_utils.logger import setup_logger
+from meraki_utils.logger import log, set_log_callback
 
 def write_csv(csv_file, group_objects):
     try:
@@ -24,13 +23,8 @@ def write_csv(csv_file, group_objects):
 
 
 def export_policy_object_groups(csv_file, debug=False, log_callback=None):
-    setup_logger(debug=debug)
-    logger = logging.getLogger(__name__)
-
-    def log(msg, level="info"):
-        if log_callback:
-            log_callback(msg)
-        getattr(logger, level)(msg)
+    if log_callback:
+        set_log_callback(log_callback)
 
     log("🚀 Starting export of policy object groups...")
 
