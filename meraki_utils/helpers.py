@@ -51,8 +51,51 @@ def write_csv(csv_file, data, fieldnames):
             for object in data:
                 writer.writerow(object)
         
-        return True, f"✅ Successfully wrote policy object groups to: {csv_file}"
+        return True, f"✅ Successfully ouput to: {csv_file}"
     except Exception as e:
         return False, f"❌ Failed to write to file: {e}"
+    
+# Append CSV File
+def append_csv(csv_file, data, fieldnames):
+    try: 
+        path = Path(csv_file)
+        with path.open(mode='a', newline='') as outfile:
+            writer = csv.DictWriter(outfile, fieldnames)
+            writer.writeheader()
+
+            for object in data:
+                writer.writerow(object)
+        
+        return True, f"✅ Successfully updated: {csv_file}"
+    except Exception as e:
+        return False, f"❌ Failed to write to file: {e}"
+    
+# Load CSV File
+def load_csv(csv_file, fieldnames):
+    objects = []
+    try: 
+        path = Path(csv_file)
+        with open(csv_file, mode='r', newline='', encoding='utf-8') as file:
+            csv_reader = csv.DictReader(file)
+
+            log(f"Detected CSV Headers: {csv_reader.fieldnames}")
+
+            missing_keys = []
+            for i, row in enumerate(csv_reader, start=1):
+                filtered_row = {}
+                for key in fieldnames:
+                    if key in row:
+                        filtered_row[key] = row[key]
+                    else:
+                        missing_keys.append((i, key))
+                objects.append(filtered_row)
+            if missing_keys:
+                log("Warning: missing fields detedted:")
+                for row_num, key, in missing_keys:
+                    log(f" - Row {row_num}: missing '{key}'")
+
+    except Exception as e:
+        log(f"Failed to load CSV: {e}")
+    return objects
 
 

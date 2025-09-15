@@ -1,20 +1,8 @@
-import csv
-from pathlib import Path
-
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.policy_objects import is_policy_object_groups_present, get_policy_object_group_by_name, get_policy_object_by_name, get_all_policy_object_groups
 from meraki_utils.logger import log, set_log_callback
-
-def load_csv(file_path):
-    objects = []
-    with open(file_path, mode='r') as file:
-        csv_reader = csv.DictReader(file)
-        for row in csv_reader:
-            name = row.get('name', '').strip()
-            if name:
-                    objects.append({'name': name})
-    return objects
+from meraki_utils.helpers import load_csv
 
 def get_policy_object_groups_for_dropdown(log_callback=None):
     if log_callback:
@@ -46,12 +34,7 @@ def update_policy_objects_in_group(csv_file, policy_object_group, debug=False, l
         log("❌ Organization ID not found.")
         return None
     
-    csv_path = Path(csv_file)
-    if not csv_path.exists():
-        log(f"❌ CSV file not found: {csv_path}")
-        return None
-
-    objects = load_csv(csv_path)
+    objects = load_csv(csv_file=csv_file, fieldnames=['name'])
 
     try:
         group = get_policy_object_group_by_name(dashboard, org_id, group_name=policy_object_group)

@@ -1,23 +1,8 @@
-import csv
-from pathlib import Path
-import logging
-
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.policy_objects import is_policy_object_groups_present
 from meraki_utils.logger import log, set_log_callback
-
-def load_csv(file_path):
-    groups = []
-    with open(file_path, mode='r') as file:
-        csv_reader = csv.DictReader(file)
-        for row in csv_reader:
-            groups.append({
-                'name': row['name'].strip(),
-                'category': row.get('category', 'NetworkObjectGroup').strip(),
-            })
-    return groups
-
+from meraki_utils.helpers import load_csv
 
 def create_policy_object_groups(csv_file, debug=False, log_callback=None):
     if log_callback:
@@ -30,12 +15,7 @@ def create_policy_object_groups(csv_file, debug=False, log_callback=None):
         log("❌ Organization ID not found.")
         return None
 
-    csv_path = Path(csv_file)
-    if not csv_path.exists():
-        log(f"❌ CSV file not found: {csv_path}")
-        return None
-
-    groups = load_csv(csv_path)
+    groups = load_csv(csv_file=csv_file, fieldnames=['name', 'category'])
 
     created_count = 0
     skipped_count = 0

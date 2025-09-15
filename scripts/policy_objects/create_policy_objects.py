@@ -1,23 +1,9 @@
-import csv
-from pathlib import Path
-import logging
-
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
 from meraki_utils.policy_objects import is_policy_object_present, get_policy_object_id
 from meraki_utils.helpers import contains_letters
 from meraki_utils.logger import log, set_log_callback
-
-def load_csv(file_path):
-    objects = []
-    with open(file_path, mode='r') as file:
-        csv_reader = csv.DictReader(file)
-        for row in csv_reader:
-            objects.append({
-                'name': row['name'],
-                'ip': row['ip']
-            })
-    return objects
+from meraki_utils.helpers import load_csv
 
 def create_policy_objects(csv_file, debug=False, log_callback=None):
     if log_callback:
@@ -29,13 +15,8 @@ def create_policy_objects(csv_file, debug=False, log_callback=None):
     if not org_id:
         log("❌ Organization ID not found.")
         return None
-    
-    csv_path = Path(csv_file)
-    if not csv_path.exists():
-        log(f"❌ CSV file not found: {csv_path}")
-        return None
 
-    objects = load_csv(csv_path)
+    objects = load_csv(csv_file=csv_file, fieldnames=['name', 'ip'])
 
     new_objects = []
     existing_objects = []
