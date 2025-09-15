@@ -1,20 +1,10 @@
-import csv
 from pathlib import Path
 
 from meraki_utils.logger import log, set_log_callback
 from meraki_utils.config import dashboard
 from meraki_utils.functions import get_organization_id
 from meraki_utils.policy_objects import get_policy_object_by_name
-
-def load_csv(file_path):
-    objects = []
-    with open(file_path, mode='r') as file:
-        csv_reader = csv.DictReader(file)
-        for row in csv_reader:
-            objects.append({
-                'name': row['name']
-            })
-    return objects
+from meraki_utils.helpers import load_csv, append_csv
 
 def delete_policy_objects(csv_file, debug=False, log_callback=None):
     if log_callback:
@@ -27,12 +17,7 @@ def delete_policy_objects(csv_file, debug=False, log_callback=None):
         log("❌ Organization ID not found.")
         return None
 
-    csv_path = Path(csv_file)
-    if not csv_path.exists():
-        log(f"❌ CSV file not found: {csv_path}")
-        return None
-    
-    objects = load_csv(csv_path)
+    objects = load_csv(csv_file=csv_file, fieldnames=['name'])
 
     deleted_count = 0
     skipped_count = 0
@@ -86,24 +71,9 @@ def delete_policy_objects(csv_file, debug=False, log_callback=None):
             continue
         
 
-    output_csv_path = Path(__file__).resolve().parent.parent.parent / "output" / "deleted_policy_objects_log.csv"
     
-    try: 
-        file_exists = output_csv_path.exists()
-
-        with output_csv_path.open(mode='a', newline='') as outfile:
-            fieldnames = ['name', 'type', 'value']
-            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-            
-            if not file_exists:
-                writer.writeheader()
-
-            for obj in deleted_policy_objects:
-                writer.writerow(obj)
-
-        log(f"Deleted policy objects logged to {output_csv_path}")
-    except Exception as e:
-        log(f"Failed to write deleted policy objects to CSV: {e}")
+    output_csv_path = Path(__file__).resolve().parent.parent.parent / "output" / "deleted_policy_objects_log.csv"
+    append_csv(csv_file=output_csv_path, data=deleted_policy_objects, fieldnames=['name', 'type', 'value'])
 
     summary = f"\n📋 Summary:\n  deleted: {deleted_count}\n Skipped Objects: {skipped_count}"
     log(summary)

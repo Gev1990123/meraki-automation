@@ -5,6 +5,7 @@ from meraki_utils.logger import log, set_log_callback
 from meraki_utils.config import dashboard
 from meraki_utils.functions import get_organization_id
 from meraki_utils.policy_objects import get_policy_object_by_name
+from meraki_utils.helpers import load_csv
 
 def load_csv(file_path):
     objects = []
@@ -44,7 +45,7 @@ def update_policy_objects(csv_file, debug=False, log_callback=None):
     updated_count = 0
     skipped_count = 0
 
-    objects = load_csv(csv_file)
+    objects = load_csv(csv_file=csv_file, fieldnames=['old_name, new_name, value'])
 
     for obj in objects:
         old_name = obj['old_name']
@@ -85,7 +86,7 @@ def update_policy_objects(csv_file, debug=False, log_callback=None):
                 continue
 
         if not update_payload:
-            logger.info(f"No updates provided for object ID {obj_id}. Skipping.")
+            log(f"No updates provided for object ID {obj_id}. Skipping.")
             skipped_count += 1
             continue
 
