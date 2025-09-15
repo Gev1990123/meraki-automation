@@ -2,6 +2,7 @@ import ipaddress
 from meraki_utils.logger import log
 from pathlib import Path
 import csv
+import re
 
 # Function Convert mbps to kbps
 def convert_mbps_to_kbps(value):
@@ -98,4 +99,8 @@ def load_csv(csv_file, fieldnames):
         log(f"Failed to load CSV: {e}")
     return objects
 
-
+# Extract policy object group IDs
+def extract_group_ids(cidr_field):
+    if not cidr_field:
+        return []
+    return re.findall(r'GRP\((\d+)\)', cidr_field)

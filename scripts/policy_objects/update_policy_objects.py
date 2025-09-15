@@ -7,25 +7,6 @@ from meraki_utils.functions import get_organization_id
 from meraki_utils.policy_objects import get_policy_object_by_name
 from meraki_utils.helpers import load_csv
 
-def load_csv(file_path):
-    objects = []
-    with open(file_path, mode='r') as file:
-        csv_reader = csv.DictReader(file)
-        for row in csv_reader:
-            old_name = (row.get('old_name') or '').strip()
-            new_name = (row.get('new_name') or '').strip()
-            value = (row.get('value') or '').strip()
-            
-            
-            objects.append({
-                'old_name': old_name,
-                'new_name': new_name,
-                'value': value
-            })
-            
-    return objects
-
-
 def update_policy_objects(csv_file, debug=False, log_callback=None):
     if log_callback:
         set_log_callback(log_callback)

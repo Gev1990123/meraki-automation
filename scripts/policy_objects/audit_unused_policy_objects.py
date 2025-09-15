@@ -11,28 +11,7 @@ from meraki_utils.policy_objects import (
     get_object_ids_from_group_id,
 )
 from meraki_utils.network import get_all_networks, get_all_l3_firewall_rules
-
-def extract_group_ids(cidr_field):
-    if not cidr_field:
-        return []
-    return re.findall(r'GRP\((\d+)\)', cidr_field)
-
-
-def write_csv(csv_file, group_objects):
-    try:
-        path = Path(csv_file)
-        with path.open(mode='w', newline='') as outfile:
-            fieldnames = ['id', 'name', 'type', 'value']
-            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-            writer.writeheader()
-
-            for obj in group_objects:
-                writer.writerow(obj)
-
-        return True, f"✅ Successfully wrote policy object groups to: {csv_file}"
-    except Exception as e:
-        return False, f"❌ Failed to write to file: {e}"
-
+from meraki_utils.helpers import write_csv, extract_group_ids
 
 def audit_unused_policy_objects(csv_file, log_callback=None, debug=False):
     if log_callback:
@@ -120,7 +99,7 @@ def audit_unused_policy_objects(csv_file, log_callback=None, debug=False):
             value = ''
         obj['value'] = value
  
-    success, result_message = write_csv(csv_file, unused_objects)
+    success, result_message = write_csv(csv_file, unused_objects, fieldnames=['id', 'name', 'type', 'value'])
     log(result_message)
 
     if success: 
