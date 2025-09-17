@@ -10,18 +10,22 @@ def convert_mbps_to_kbps(value):
 
 # Function to get a users selection: 
 def get_user_selection(item):
-    selection = int(input("Enter the number of your choice: "))
-    if 1 <= selection <= len(item):
-        selected_item = item[selection - 1]
-        return selected_item
-    else:
-        log("Invalid selection. Please try again.")
+    try: 
+        selection = int(input("Enter the number of your choice: "))
+        if 1 <= selection <= len(item):
+            selected_item = item[selection - 1]
+            return selected_item
+        else:
+            log("Invalid selection. Please try again.")
+            return None
+    except ValueError:
+        log("Invalid input. Please enter a number.")
         return None
 
 def display_list_for_user_selection(item, item_name):
     print(f'Please select a {item_name}: ')
-    for i, item in enumerate(item, start=1):
-        log(f'{i}. {item['name']}')
+    for i, obj in enumerate(item, start=1):
+        log(f'{i}. {obj['name']}')
 
 # Function to confirm if a string contains letters
 def contains_letters(object_ip):
@@ -60,12 +64,14 @@ def write_csv(csv_file, data, fieldnames):
 def append_csv(csv_file, data, fieldnames):
     try: 
         path = Path(csv_file)
+        file_exists = path.exists() and path.stat().st_size > 0
+
         with path.open(mode='a', newline='') as outfile:
             writer = csv.DictWriter(outfile, fieldnames)
-            writer.writeheader()
-
-            for object in data:
-                writer.writerow(object)
+            if not file_exists:
+                writer.writeheader()
+            for row in data:
+                writer.writerow(row)
         
         return True, f"✅ Successfully updated: {csv_file}"
     except Exception as e:
@@ -96,8 +102,7 @@ def load_csv(csv_file, fieldnames):
                     log(f" - Row {row_num}: missing '{key}'")
 
     except Exception as e:
-        log(f"Failed to load CSV: {e}")
-    return objects
+        return [], f"Error: {e}"
 
 # Extract policy object group IDs
 def extract_group_ids(cidr_field):
