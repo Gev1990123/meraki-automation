@@ -23,7 +23,7 @@ class NetworkClientsWindow(tk.Toplevel):
             ttk.Label(frame, text="Network Client Analysis", font=("Segoe UI", 14)).pack(pady=10)
 
             # Network filter (optional)
-            tk.Label(frame, text="Select a Network (or All):").pack(pady=5)
+            ttk.Label(frame, text="Select a Network (or All):").pack(pady=5)
             self.selected_network = tk.StringVar()
             self.network_combobox = ttk.Combobox(frame, textvariable=self.selected_network, state="readonly")
             self.network_combobox.pack(fill='x', pady=5)
@@ -140,5 +140,5 @@ class NetworkClientsWindow(tk.Toplevel):
     def get_selected_groups(self, listbox):
         selected = [listbox.get(i) for i in listbox.curselection()]
         if "Any" in selected:
-            return ["Any"]  # Or [] if your backend interprets that as "any"
+            return ["Any"]
         return selected
