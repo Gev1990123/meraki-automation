@@ -91,3 +91,13 @@ def get_network_events(dashboard, networkId, product_type, starting_after=None, 
     except Exception as e:
         log(f"Error retrieving network events for network {networkId}: {e}")
         return []
+
+# Function to get network clients
+def get_network_clients(dashboard, networkId, timespan=86400):
+    try:
+        network_clients = dashboard.networks.getNetworkClients(networkId, total_pages='all', timespan=timespan)
+
+        return network_clients
+    except Exception as e:
+        log(f"Error retrieving network clients from network {networkId}: {e}")
+        return []
