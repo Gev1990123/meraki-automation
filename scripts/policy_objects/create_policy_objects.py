@@ -22,8 +22,8 @@ def create_policy_objects(csv_file, debug=False, log_callback=None):
     existing_objects = []
 
     for obj in objects:
-        name = obj['name']
-        ip = obj['ip']
+        name = obj.get('name')
+        ip = obj.get('ip')
 
         if not is_policy_object_present(dashboard, org_id, name, ip):
             log(f"➕ Creating policy object: {name} ({ip})")
