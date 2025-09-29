@@ -9,6 +9,7 @@ class ClaimDevicesWindow(tk.Toplevel):
         super().__init__(parent)
         self.title("Claim Devices")
         self.geometry("400x300")
+        self.resizable(False, False)
 
         self.create_widgets()
 
@@ -52,6 +53,11 @@ class ClaimDevicesWindow(tk.Toplevel):
             title="Select CSV File",
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
         )
+
+        if not file_path.lower().endswith(".csv"):
+            messagebox.showerror("Invalid File", "Please select a CSV file.")
+            return
+
         if file_path:
             self.file_path_var.set(file_path)
 
@@ -63,10 +69,12 @@ class ClaimDevicesWindow(tk.Toplevel):
                 return
 
             result = claim_devices(csv_file=selected_file, log_callback=self.log_to_gui, debug=True)
-            
+
             if result:
                 messagebox.showinfo("Summary", result["summary"])
             else:
                 messagebox.showerror("Error", "Object creation failed. Check the log.")
+        except Exception as e:
+            messagebox.showerror("Execution Error", f"An error occurred: {e}")
         finally:
             self.start_button.config(state='normal')
