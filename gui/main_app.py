@@ -20,12 +20,13 @@ from gui.windows.export_policy_objects_window import ExportPolicyObjectsWindow
 from gui.windows.find_duplicate_policy_objects_window import FindDuplicatePolicyObjectsWindow
 from gui.windows.update_policy_object_groups_window import UpdatePolicyObjectsInGroupWindow
 from gui.windows.update_policy_objects_window import UpdatePolicyObjectsWindow
+from gui.windows.network_clients_window import NetworkClientsWindow
 
 class MerakiApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Meraki Automation Hub")
-        self.geometry("400x600")
+        self.geometry("400x800")
 
         ttk.Label(self, text="Select an action:", font=("Arial", 16)).pack(pady=10)
 
@@ -43,7 +44,8 @@ class MerakiApp(tk.Tk):
         ttk.Button(self, text="Export Policy Objects", command=self.export_policy_objects).pack(fill='x', padx=20, pady=5)
         ttk.Button(self, text="Find Duplicate Policy Objects", command=self.find_duplciate_policy_objects).pack(fill='x', padx=20, pady=5)
         ttk.Button(self, text="Update Policy Objects in a Group", command=self.update_policy_objects_in_group).pack(fill='x', padx=20, pady=5)
-        ttk.Button(self, text="Update Policy Objects", command=self.update_policy_objects).pack(fill='x', padx=20, pady=5)        
+        ttk.Button(self, text="Update Policy Objects", command=self.update_policy_objects).pack(fill='x', padx=20, pady=5)    
+        ttk.Button(self, text="Network Client Analysis", command=self.network_clients_analysis).pack(fill='x', padx=20, pady=5)      
 
 
     def open_claim_devices(self):
@@ -90,6 +92,9 @@ class MerakiApp(tk.Tk):
 
     def update_policy_objects(self):
         UpdatePolicyObjectsWindow(self)
+
+    def network_clients_analysis(self):
+        NetworkClientsWindow(self)
 
 if __name__ == "__main__":
     app = MerakiApp()
