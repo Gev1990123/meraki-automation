@@ -9,6 +9,7 @@ class FirewallRuleWindow(tk.Toplevel):
         super().__init__(master)
         self.title("Create Meraki Firewall Rule")
         self.geometry("500x450")
+        self.resizable(False, False)
 
         # Variables (instantiate them)
         self.comment = tk.StringVar()
@@ -98,30 +99,17 @@ class FirewallRuleWindow(tk.Toplevel):
         self.log_output.see('end')
         self.log_output.configure(state='disabled')
 
-    def run_creation_threaded(self):
-        # Disable the button while running
-        self.start_button.config(state='disabled')
-        threading.Thread(target=self.run_creation, daemon=True).start()
-
-    def browse_file(self):
-        file_path = filedialog.askopenfilename(
-            title="Select CSV File",
-            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
-        )
-        if file_path:
-            self.file_path_var.set(file_path)
-
     def run_rule_threaded(self):
         self.run_button.config(state="disabled")
         self.log_output.config(state="normal")
         self.log_output.delete(1.0, tk.END)
-        self.log("Starting firewall rule creation...")
+        self.log_to_gui("Starting firewall rule creation...")
         threading.Thread(target=self.run_rule).start()
 
     def run_rule(self):
         try:
             if not self.comment.get() or not self.policy.get() or not self.protocol.get():
-                self.log("❌ Validation Error: Please complete all required fields.")
+                self.log_to_gui("❌ Validation Error: Please complete all required fields.")
                 messagebox.showerror("Validation Error", "Please complete all required fields.")
                 return
             
@@ -129,7 +117,7 @@ class FirewallRuleWindow(tk.Toplevel):
             dst_groups = self.get_selected_groups(self.dst_listbox)
 
             if not src_groups or not dst_groups:
-                self.log("❌ Source and Destination groups must be selected.")
+                self.log_to_gui("❌ Source and Destination groups must be selected.")
                 messagebox.showwarning("Missing Groups", "Please select at least one source and destination group.")
                 return
 
@@ -150,16 +138,16 @@ class FirewallRuleWindow(tk.Toplevel):
 
 
             if success:
-                self.log("✅ Firewall rule creation completed.")
-                self.log(f"Success networks: {', '.join(result.get('success', []))}")
-                self.log(f"Skipped networks: {', '.join(result.get('skipped', []))}")
-                self.log(f"Error networks: {', '.join(result.get('error', []))}")
+                self.log_to_gui("✅ Firewall rule creation completed.")
+                self.log_to_gui(f"Success networks: {', '.join(result.get('success', []))}")
+                self.log_to_gui(f"Skipped networks: {', '.join(result.get('skipped', []))}")
+                self.log_to_gui(f"Error networks: {', '.join(result.get('error', []))}")
             else:
-                self.log("❌ Firewall rule creation failed.")
-                self.log(str(result))
+                self.log_to_gui("❌ Firewall rule creation failed.")
+                self.log_to_gui(str(result))
 
         except Exception as e:
-            self.log(f"❌ Error: {e}")
+            self.log_to_gui(f"❌ Error: {e}")
         finally:
             self.run_button.config(state="normal")
 
