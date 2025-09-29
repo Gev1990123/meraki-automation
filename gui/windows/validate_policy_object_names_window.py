@@ -5,19 +5,15 @@ import logging
 
 from meraki_utils.config import dashboard
 from meraki_utils.organisation import get_organization_id
-from meraki_utils.logger import setup_logger
 
-# Import the refactored function
 from scripts.auditing_validation.validate_policy_object_names import validate_policy_objects
-
-setup_logger()
-logger = logging.getLogger(__name__)
 
 class PolicyObjectValidationWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Policy Object Validation")
         self.geometry("600x400")
+        self.resizable(False, False)
 
         ttk.Label(self, text="Output CSV File Name:").pack(pady=5)
         self.output_entry = ttk.Entry(self)
@@ -29,6 +25,12 @@ class PolicyObjectValidationWindow(tk.Toplevel):
 
         self.result_box = tk.Text(self, height=15)
         self.result_box.pack(fill='both', padx=20, pady=10)
+
+    def log_to_gui(self, message):
+        self.log_output.configure(state='normal')
+        self.log_output.insert('end', message + '\n')
+        self.log_output.see('end')
+        self.log_output.configure(state='disabled')
 
     def run_validation(self):
         output_filename = self.output_entry.get().strip()
@@ -43,19 +45,19 @@ class PolicyObjectValidationWindow(tk.Toplevel):
 
         output_path = Path(__file__).parent.parent.parent / "output" / output_filename
 
-        self.result_box.delete('1.0', tk.END)
-        self.result_box.insert(tk.END, "Running validation...\n")
+        self.log_to_gui("Running validation...")
 
         try:
             results = validate_policy_objects(dashboard, org_id, output_path)
-            self.result_box.insert(tk.END, f"Validation complete.\nResults saved to {output_path}\n\n")
+
+            self.log_to_gui(f"Validation complete.\nResults saved to {output_path}\n")
+
             invalids = [r for r in results if r["status"] == "invalid"]
             if invalids:
-                self.result_box.insert(tk.END, f"Invalid Policy Objects:\n")
+                self.log_to_gui("Invalid Policy Objects:")
                 for item in invalids:
-                    self.result_box.insert(tk.END, f"{item['name']}: {item['errors']}\n")
+                    self.log_to_gui(f"{item['name']}: {item['errors']}")
             else:
-                self.result_box.insert(tk.END, "All policy objects are valid.\n")
+                self.log_to_gui("All policy objects are valid.")
         except Exception as e:
-            logger.error(f"Validation failed: {e}")
-            self.result_box.insert(tk.END, f"Validation failed: {e}\n")
+            self.log_to_gui(f"Validation failed: {e}")
